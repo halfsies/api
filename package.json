@@ -1,12 +1,12 @@
 {
-  "name": "api-servicetitan-xyz",
+  "name": "api-halfsies-co",
   "version": "0.0.0",
-  "description": "Extended api for go.servicetitan.com",
+  "description": "tinder for losing money",
   "main": "dist",
   "scripts": {
-    "dev": "DEBUG=api-servicetitan-xyz,srvcttn SRVCTTN=show nodemon -w src --exec \"babel-node src --presets es2015,stage-0\"",
+    "dev": "DEBUG=api-halfsies-co nodemon -w src --exec \"babel-node src --presets es2015,stage-0\"",
     "build": "babel src -s -D -d dist --presets es2015,stage-0",
-    "start": "DEBUG=api-servicetitan-xyz,srvcttn node dist",
+    "start": "DEBUG=api-halfsies-co node dist",
     "test": "eslint src"
   },
   "engines": {
@@ -26,10 +26,10 @@
       "no-unused-vars": 1
     }
   },
-  "homepage": "https://api.servicetitan.xyz",
+  "homepage": "https://api.halfsies.co",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/brunoair/api-servicetitan-xyz"
+    "url": "git+https://github.com/halfsies/api"
   },
   "author": {
     "name": "Maxmillion McLaughlin",
@@ -37,14 +37,17 @@
   },
   "license": "Unlicense",
   "dependencies": {
+    "assert": "^1.4.1",
     "body-parser": "^1.13.3",
     "debug": "2.2.0",
     "express": "^4.13.3",
     "express-healthcheck": "0.1.0",
-    "express-queue": "0.0.5",
     "express-status-monitor": "^0.0.9",
-    "randomstring": "^1.1.5",
-    "srvcttn": "0.1.41",
+    "matchmaker": "^0.1.0",
+    "mongodb": "^2.2.10",
+    "mongoose": "^4.6.1",
+    "socket.io": "^1.4.8",
+    "twilio": "^2.11.0",
     "yamljs": "0.2.8"
   },
   "devDependencies": {
@@ -56,8 +59,8 @@
     "nodemon": "^1.9.2"
   },
   "keywords": [
-    "servicetitan",
-    "brunoair",
-    "express"
+    "halfsies",
+    "tinder",
+    "vancouver"
   ]
 }
