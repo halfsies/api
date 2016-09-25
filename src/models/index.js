@@ -8,3 +8,4 @@
 'use strict'
 
 exports.User = require('./user')
+exports.Match = require('./match')

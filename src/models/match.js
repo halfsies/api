@@ -10,10 +10,13 @@
 import mongoose from 'mongoose'
 
 let schema = mongoose.Schema({
-  name: String,
-  balance: Number
+  opponents: Array,
+  room: String,
+  pot: Number,
+  split: Array,
+  steal: Array
 })
 
-let model = module.exports = mongoose.model('User', schema)
+let model = module.exports = mongoose.model('Match', schema)
 
 export default model
