@@ -20,8 +20,14 @@ let log = debug('api-halfsies-co')
 let User = mongoose.model('User')
 let Match = mongoose.model('Match')
 
+const anty = 10
+const houseMul = 0.8
+
 const __SPLIT__ = 1
 const __STEAL__ = 2
+
+let house = null
+User.findOne({nickname: 'house'}, (err, obj) => house = obj)
 
 let mm = new Matchmaker;
 mm.prefs.checkinterval = 500;
@@ -40,11 +46,11 @@ export default (app) => {
 
       let user = null
 
-      User.findOne({name: nickname}, (err, obj) => {
+      User.findOne({nickname: nickname}, (err, obj) => {
         if(obj) {
           socket.emit('didLogin', obj)
         } else {  // If not found, then create user
-          let user = new User({name: nickname, balance: 5000})
+          let user = new User({nickname: nickname, balance: 5000})
           user.save()
 
           socket.emit('didLogin', user)
@@ -59,41 +65,59 @@ export default (app) => {
       mm.push(socket)
     })
 
-    socket.on('split', (match) => {
+    socket.on('didSplit', (match) => {
       log(`${socket.nickname} did split`)
 
-      Match.findByIdAndUpdate(
-        match._id,
-        {$push: {split: socket.nickname}},
-        {safe: true, upsert: true, new: true},
-        (err, obj) => computeMatch(obj)
-      )
+      User.findOne({nickname: socket.nickname}, (err, obj) => {
+        Match.findByIdAndUpdate(
+          match._id,
+          {$push: {split: obj}},
+          {safe: true, upsert: true, new: true},
+          (err, obj) => computeMatch(obj)
+        )
+      })
     })
 
-    socket.on('steal', (match) => {
+    socket.on('didSteal', (match) => {
       log(`${socket.nickname} did steal`)
 
-      Match.findByIdAndUpdate(
-        match._id,
-        {$push: {steal: socket.nickname}},
-        {safe: true, upsert: true, new: true},
-        (err, obj) => computeMatch(obj)
-      )
+      User.findOne({nickname: socket.nickname}, (err, obj) => {
+        Match.findByIdAndUpdate(
+          match._id,
+          {$push: {steal: obj}},
+          {safe: true, upsert: true, new: true},
+          (err, obj) => computeMatch(obj)
+        )
+      })
     })
 
     socket.on('disconnect', () => log('user disconnected'))
   })
 
-  mm.on('match', function(result) {
+  mm.on('match', function(result) { // Found match
     log(`did match fuckbois ${result.a.nickname} & ${result.b.nickname}`)
 
     const room = new Date().getTime()
     result.a.join(room)
     result.b.join(room)
 
-    User.findOne({name: result.a.nickname}, (err, a) => {
-      User.findOne({name: result.b.nickname}, (err, b) => {
-        let match = new Match({opponents: [a, b], room: room, pot: 0, split: [], steal: []})
+    User.findOne({nickname: result.a.nickname}, (err, a) => {
+      User.findOne({nickname: result.b.nickname}, (err, b) => {
+        let pot = 0
+
+        a.balance -= anty
+        pot += anty
+        a.save()
+
+        b.balance -= anty
+        pot += anty
+        b.save()
+
+        house.balance -= (anty * houseMul)
+        pot += (anty * houseMul)
+        house.save()
+
+        let match = new Match({opponents: [a, b], room: room, anty: anty, pot: pot, split: [], steal: []})
         match.save()
 
         io.in(room).emit('foundMatch', match)
@@ -109,15 +133,53 @@ export default (app) => {
 function computeMatch(match) {
   // If two actions have been taken, then lets compute
   let splits = match.split.length
-  let steals = match.split.length
+  let steals = match.steal.length
   let actions = splits + steals
   if(actions < 2) return false
 
+  let matchVersus = match.opponents[0].nickname + ' vs ' + match.opponents[1].nickname
+
   if(splits == 2) { // Both split the pot
+    log(`${matchVersus} will split`)
+    let earnings = match.pot/2
+    User.findOne({nickname: match.opponents[0].nickname}, (err, user) => {
+      user.balance += earnings
+      user.save()
+    })
+    User.findOne({nickname: match.opponents[1].nickname}, (err, user) => {
+      user.balance += earnings
+      user.save()
+    })
 
-  } else if(steals == 2) { // Pot goes to house
+  } else if(steals == 2) { // Both steal so pot goes to house
+    log(`${matchVersus} both stole`)
 
-  } else { // Chumped cuker
+    house.balance += match.pot
+    house.save()
+  } else { // Chumped sucker
 
+    let earnings = match.anty + (match.anty * houseMul)
+
+    User.findOne({nickname: match.opponents[0].nickname}, (err, user) => {
+      if(match.steal[0].nickname == user.nickname) {
+        log(`${user.nickname} is top fuckboi`)
+        user.balance += earnings
+        user.save()
+      }
+    })
+    User.findOne({nickname: match.opponents[1].nickname}, (err, user) => {
+      if(match.steal[0].nickname == user.nickname) {
+        log(`${user.nickname} is top fuckboi`)
+        user.balance += earnings
+        user.save()
+      }
+    })
+
+    house.balance += match.anty
+    house.save()
   }
+}
+
+function concludeMatch(match) {
+  
 }

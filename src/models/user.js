@@ -10,7 +10,7 @@
 import mongoose from 'mongoose'
 
 let schema = mongoose.Schema({
-  name: String,
+  nickname: String,
   balance: Number
 })
 

@@ -12,6 +12,7 @@ import mongoose from 'mongoose'
 let schema = mongoose.Schema({
   opponents: Array,
   room: String,
+  anty: Number,
   pot: Number,
   split: Array,
   steal: Array
